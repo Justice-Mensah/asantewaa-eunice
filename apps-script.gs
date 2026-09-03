@@ -28,12 +28,15 @@ function doPost(e) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName('Visits') || ss.insertSheet('Visits');
 
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow([
-        'Time', 'Source', 'IP', 'City', 'Region', 'Country',
-        'Latitude', 'Longitude', 'Accuracy (m)', 'Coordinates (map)', 'ISP',
-        'Device', 'Language', 'Screen', 'Timezone', 'Referrer', 'Page'
-      ]);
+    var header = [
+      'Time', 'Source', 'IP', 'City', 'Region', 'Country',
+      'Latitude', 'Longitude', 'Accuracy (m)', 'Coordinates (map)', 'ISP',
+      'Device', 'Language', 'Screen', 'Timezone', 'Referrer', 'Page'
+    ];
+    // Write / repair the header row whenever it isn't the current layout,
+    // so you never have to clear the sheet by hand.
+    if (sheet.getLastRow() === 0 || sheet.getRange(1, 2).getValue() !== 'Source') {
+      sheet.getRange(1, 1, 1, header.length).setValues([header]);
       sheet.setFrozenRows(1);
     }
 
