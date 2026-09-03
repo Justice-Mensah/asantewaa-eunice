@@ -193,6 +193,36 @@
         </div>
       </section>
 
+      <!-- ===== GALLERY ===== -->
+      <section class="catalog" id="memories">
+        <header class="catalog__head reveal">
+          <p class="section-kicker">— a moment or two —</p>
+          <h2 class="section-title">Just <em>you</em>.</h2>
+          <p class="section-lede">
+            Tap to look closer.
+          </p>
+        </header>
+
+        <div class="gallery" id="gallery">
+          <figure class="frame frame--hero reveal" data-index="0">
+            <img src="images/eunice.JPG" alt="Asantewaa Eunice" loading="lazy" />
+            <figcaption>
+              <span class="frame__num">01</span>
+              <span class="frame__cap">The birthday girl. 🤍</span>
+            </figcaption>
+          </figure>
+
+          <figure class="frame frame--video frame--wide reveal" data-index="1" data-video="true">
+            <video src="images/video.MP4#t=0.1" muted loop playsinline preload="metadata"></video>
+            <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>
+            <figcaption>
+              <span class="frame__num">02</span>
+              <span class="frame__cap">A memory in motion.</span>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
       <!-- ===== BLESSINGS ===== -->
       <section class="wishes reveal" id="wishes">
         <h2 class="section-title center">Three prayers <em>over your year</em>.</h2>
@@ -262,6 +292,15 @@
         </p>
       </footer>
     </main>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Memory viewer" aria-hidden="true">
+      <button class="lightbox__close" id="lbClose" aria-label="Close">×</button>
+      <button class="lightbox__nav lightbox__nav--prev" id="lbPrev" aria-label="Previous">‹</button>
+      <button class="lightbox__nav lightbox__nav--next" id="lbNext" aria-label="Next">›</button>
+      <div class="lightbox__stage" id="lbStage"></div>
+      <p class="lightbox__cap" id="lbCap"></p>
+    </div>
 
     <canvas id="confetti" aria-hidden="true"></canvas>
 
