@@ -32,12 +32,22 @@ tiny Apps Script Web App.
 
 > Until you paste a real URL, logging stays **off** (the page still works fine).
 
-### What's captured
-IP address, city / region / country, latitude & longitude (city-level, from the
-IP), ISP, device/user-agent, language, screen size, timezone, referrer, and the
-page URL. This is **IP-based and automatic** — it shows **no "allow location"
-popup**, so the visitor isn't tipped off. (Ask me if you also want the precise
-GPS prompt.)
+### What's captured — two rows per visitor
+Every visit logs one **IP** row automatically, and (if they allow it) one
+**GPS** row. The `Source` column tells them apart:
+
+- **IP** — automatic, no popup. City/ISP-level, so people on the same network
+  share the same coordinates. Good for country/city, not exact.
+- **GPS** — asked when the visitor taps **Enter** (a browser permission prompt).
+  This is the **exact** location, with an accuracy in metres. If they decline,
+  only the IP row is logged.
+
+Both rows also capture: IP, city/region/country, latitude/longitude, a clickable
+map link, ISP, device/user-agent, language, screen size, timezone, referrer, and
+the page URL.
+
+> Note: getting each person's *exact* spot requires the GPS prompt — there's no
+> way to read precise location silently from a browser.
 
 ---
 

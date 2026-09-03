@@ -3,6 +3,8 @@
  *
  * This receives each visitor's IP + location from the page and appends a row
  * to your Google Sheet. Nothing is stored in any database — just your Sheet.
+ * Each row is tagged Source = "IP" (auto, city-level) or "GPS" (exact, with
+ * the visitor's permission).
  *
  * ── SETUP (about 5 minutes) ─────────────────────────────────────────────
  * 1. Create a new Google Sheet (sheets.new). Name it e.g. "Eunice Visits".
@@ -28,8 +30,8 @@ function doPost(e) {
 
     if (sheet.getLastRow() === 0) {
       sheet.appendRow([
-        'Time', 'IP', 'City', 'Region', 'Country',
-        'Latitude', 'Longitude', 'Coordinates (map)', 'ISP',
+        'Time', 'Source', 'IP', 'City', 'Region', 'Country',
+        'Latitude', 'Longitude', 'Accuracy (m)', 'Coordinates (map)', 'ISP',
         'Device', 'Language', 'Screen', 'Timezone', 'Referrer', 'Page'
       ]);
       sheet.setFrozenRows(1);
@@ -43,8 +45,9 @@ function doPost(e) {
 
     sheet.appendRow([
       new Date(),
+      (data.source || 'IP'),
       data.ip || '', data.city || '', data.region || '', data.country || '',
-      lat, lng, mapLink, data.isp || '',
+      lat, lng, (data.accuracy || ''), mapLink, data.isp || '',
       data.user_agent || '', data.language || '', data.screen || '',
       data.timezone || '', data.referrer || '', data.page || ''
     ]);
